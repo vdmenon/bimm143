@@ -1,0 +1,99 @@
+---
+title: "Bioinformatics Class7"
+author: "Vaibhav Menon"
+date: "4/24/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Functions again
+
+Here I am going to revisit our functino from class6
+
+```{r}
+source("http://tinyurl.com/rescale-R")
+```
+
+Let's use this function
+```{r}
+rescale(1:10)
+```
+
+Looks good, let's break it!
+```{r}
+#rescale(c(1:10, "string"))
+```
+
+Lets try the new **rescale2** function
+```{r}
+#rescale2(c(1:10, "string"))
+```
+
+## Write a NA checking function
+
+Here we write a new function to check for NAs in two inputs.
+This is the both_na starting point
+```{r}
+both_na <- function(x,y){
+sum(is.na(x)&is.na(y))}
+```
+
+
+```{r}
+ x <-  c(NA, NA, NA)
+y1 <- c(1, NA, NA)
+y2 <- c( 1, NA, NA, NA)
+both_na2(x, y2)
+```
+
+##Another function example
+```{r}
+df1
+df2
+
+x <- df1$IDs
+y <- df2$IDs
+```
+
+```{r}
+intersect(x,y)
+
+y %in% x
+```
+
+```{r}
+x[x %in% y]
+y[y %in% x]
+```
+
+Can make these columns of the same object with **cbind()**
+```{r}
+cbind(x[x %in% y], y[y %in% x])
+```
+
+```{r}
+install.packages("msa")
+library("msa")
+```
+
+```{r}
+## read sequences
+filepath <- system.file("examples", "exampleAA.fasta", package="msa")
+mySeqs <- readAAStringSet(filepath)
+
+## call unified interface msa() for default method (ClustalW) and
+## default parameters
+msa(mySeqs)
+
+## call ClustalOmega through unified interface
+msa(mySeqs, method="ClustalOmega")
+
+## call MUSCLE through unified interface with some custom parameters
+msa(mySeqs, method="Muscle", gapOpening=12, gapExtension=3, maxiters=16,
+    cluster="upgmamax", SUEFF=0.4, brenner=FALSE,
+    order="input", verbose=FALSE)
+```
+

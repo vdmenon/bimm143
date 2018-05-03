@@ -13,7 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 wisc.df <- read.csv("https://bioboot.github.io/bimm143_W18/class-material/WisconsinCancer.csv")
-wisc.df
+head(wisc.df)
 
 # Convert the features of the data: wisc.data
 #wisc.data <- as.matrix(wisc.df,ncol= 3:32 )

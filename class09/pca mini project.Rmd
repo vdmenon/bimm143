@@ -62,6 +62,13 @@ biplot(wisc.pr)
 ```
 The plot is practically impossible to read because everything is clustered around each other.
 ```{r}
+#calculate variance of each component
+pr.var <- wisc.pr$sdev^2
+head(pr.var)
+pve <- pr.var/ sum(pr.var)
+```
+
+```{r}
 #Scatter plot observations by components 1 and 2
 plot(wisc.pr$x[,c(1,2)], col=(diagnosis+1), xlab="PC1", ylab="PC2")
 
@@ -76,12 +83,6 @@ axis(2, at=pve, labels=round(pve,2)*100 )
 
 ```
 ##Variance explained: Scree-plot
-```{r}
-#calculate variance of each component
-pr.var <- wisc.pr$sdev^2
-head(pr.var)
-pve <- pr.var/ sum(pr.var)
-```
 
 ```{r}
 # Plot proportion and cumulative proportion of variance explained

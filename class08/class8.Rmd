@@ -1,0 +1,131 @@
+---
+title: "Bioinformatics Class8"
+author: "Vaibhav Menon"
+date: "4/26/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+#K-means clustering
+
+Let us make up some data to try K-means on
+```{r}
+ # Generate some example data for clustering
+tmp <- c(rnorm(30,-3), rnorm(30,3))
+x <- cbind(x=tmp, y=rev(tmp))
+plot(x)
+# Use the kmeans() function setting k to 2 and nstart=20
+km <- kmeans(x, centers=2, nstart=20)
+# Inspect/print the results
+km
+# Q. How many points are in each cluster?
+km$size
+# Q. What ‘component’ of your result object details
+#      - cluster size?
+#      - cluster assignment/membership?
+km$cluster
+#      - cluster center?
+km$centers
+# Plot x colored by the kmeans cluster assignment and
+#      add cluster centers as blue points
+plot(x, col=km$cluster)
+points(km$centers, col="blue", pch=15)
+# Q. Repeat for k=3, which one has the better total SS?
+
+```
+
+```{r}
+ # First we need to calculate point (dis)similarity
+#   as the Euclidean distance between observations
+dist_matrix <- dist(x)
+# The hclust() function returns a hierarchical
+#  clustering model
+hc <- hclust(d = dist_matrix)
+# the print method is not so useful here
+hc
+Call:
+hclust(d =(d = dist_matrix)
+Cluster method   : complete
+Distance         : euclidean
+Number of objects: 60
+```
+Let's draw the tree
+```{r}
+plot(hc)
+abline(h=6,col="cyan")
+cutree(hc, h=6,)
+```
+I can 'cut' the tree at any height to give our clusters
+```{r}
+#Cut at height 6
+cutree(hc, h=6)
+```
+
+```{r}
+#Step 1 Generate example data for clustering
+x <- rbind(
+  matrix(rnorm(100, mean=0, sd = 0.3), ncol = 2),   # c1
+  matrix(rnorm(100, mean = 1, sd = 0.3), ncol = 2), # c2
+  matrix(c(rnorm(50, mean = 1, sd = 0.3),           # c3
+           rnorm(50, mean = 0, sd = 0.3)), ncol = 2))
+colnames(x) <- c("x", "y")
+#Step 2 Plot the data without clustering
+plot(x)
+#Step3. Generate colors for known clusters ( so we can compare to hclust results)
+col <- as.factor(rep(c("c1","c2","c3"), each=50))
+plot(x, col=col)
+# Q. Use the dist(), hclust(), plot() and cutree()
+#      functions to return 2 and 3 clusters
+dist_clust <- dist(x)
+hc_clust <- hclust(d = dist_clust)
+#to return two clusters, set k-2
+plot(hc_clust)
+plot(hc_clust,cutree(hc_clust, k=3 ))
+```
+let's do PCA
+```{r}
+## Initialize a blank 100 row by 10 column matrix
+mydata <- matrix(nrow=100, ncol=10)
+
+## Lets label the rows gene1, gene2 etc. to gene100
+rownames(mydata) <- paste("gene", 1:100, sep="")
+
+## Lets label the first 5 columns wt1, wt2, wt3, wt4 and wt5
+##   and the last 5 ko1, ko2 etc. to ko5 (for "knock-out")
+colnames(mydata) <- c( paste("wt", 1:5, sep=""),
+                       paste("ko", 1:5, sep="") )
+## Fill in some fake read counts
+for(i in 1:nrow(mydata)) {
+wt.values <- rpois(5, lambda=sample(x=10:1000, size=1)) 
+ko.values <- rpois(5, lambda=sample(x=10:1000, size=1))
+  mydata[i,] <- c(wt.values, ko.values)
+}
+head(mydata)
+## lets do PCA
+pca <- prcomp(t(mydata), scale=TRUE)
+attributes(pca) 
+## A basic PC1 vs PC2 2-D plot
+plot(pca$x[,1], pca$x[,2])
+## Variance captured per PC
+pca.var <- pca$sdev^2
+## Precent variance is often more informative to look at
+pca.var <- pca$sdev^2
+pca.var.per <- round(pca.var/sum(pca.var)*100, 1)
+```
+
+How well are our PCs capturing our data spread (i.e variance)
+plot our scree plot
+```{r}
+barplot(pca.var.per, main="Scree Plot",xlab="Principal Component", ylab="Percent Variation")
+#Color up our PCA plot
+colvec <- colnames(mydata)
+colvec[grep("wt", colvec)] <- "red"
+colvec[grep("ko", colvec)] <- "blue"
+plot(pca$x[,1], pca$x[,2], col=colvec, pch=16, xlab=paste0("PC1 (", pca.var.per[1], "%)"),
+     ylab=paste0("PC2 (", pca.var.per[2], "%)"))
+identify(pca$x[,1], pca$x[,2], labels=colnames(mydata))
+```
+
+

@@ -22,6 +22,10 @@ Let's calculate something
 percent <- (pdb.stats$Total /sum(pdb.stats$Total))*100
 names(percent) <- pdb.stats$Experimental.Method
 percent
-```
 
+proteintot <- (sum(pdb.stats$Proteins) /sum(pdb.stats$Total))*100
+proteintot
+
+```
+Q1: X-ray crystallography accounts for 89.5% of PDB entries. Proteins account for 92.8% of total structures.  
 

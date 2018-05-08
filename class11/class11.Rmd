@@ -27,5 +27,132 @@ proteintot <- (sum(pdb.stats$Proteins) /sum(pdb.stats$Total))*100
 proteintot
 
 ```
-Q1: X-ray crystallography accounts for 89.5% of PDB entries. Proteins account for 92.8% of total structures.  
+Q1: X-ray crystallography accounts for 89.5% of PDB entries. Proteins account for 92.8% of total structures.
+
+Q2: There are 113 protease structures in the results, which account for 2.6% of the structures.
+
+# Working with Bio3d
+
+Let's load the package
+```{r}
+library(bio3d)
+```
+
+List the functions in the package
+```{r}
+lbio3d()
+```
+
+Read a pdb file
+```{r}
+pdb <- read.pdb("1hsg")
+pdb
+```
+
+Select and write-out C-alpha atoms only.
+```{r}
+inds <- atom.select(pdb, "calpha")
+inds
+```
+
+check if we have what we want
+```{r}
+head(pdb$atom[inds$atom,])
+```
+
+```{r}
+ca.pdb <- trim.pdb(pdb, inds=inds)
+write.pdb(ca.pdb, file="calpha_only.pdb")
+```
+
+# Download some example PDB files 
+```{r}
+ids <- c("1TND_B","1AGR_A","1TAG_A","1GG2_A","1KJY_A","4G5Q_A")
+files <- get.pdb(ids, split = TRUE)
+# Extract and align the chains we are interested in  
+pdbs <- pdbaln(files, fit = TRUE)
+# Print to screen a summary of the 'pdbs' object
+pdbs
+```
+```{r}
+# Access the first 5 rows, and 8 columns
+pdbs$ali[1:5, 1:8]
+
+```
+
+```{r}
+# Associated residues numbers
+pdbs$resno[1:5, 1:8]
+```
+
+```{r}
+# Inspect alignment for gaps
+gaps <- gap.inspect(pdbs$ali)   
+
+# Indices of non-gap columns
+head(gaps$f.inds) 
+ 
+# Access non-gap columns
+pdbs$ali[, gaps$f.inds]
+ 
+```
+```{r}
+# Inspect alignment for gaps
+gaps <- gap.inspect(pdbs$ali)   
+
+# Indices of non-gap columns
+head(gaps$f.inds) 
+ 
+# Access non-gap columns
+pdbs$ali[, gaps$f.inds]
+basename.pdb(pdbs$id)
+ 
+```
+
+
+```{r}
+# Calculate sequence identity
+seqidentity(pdbs)
+
+# Calculate RMSD
+rmsd(pdbs)
+```
+
+```{r}
+# Calculate RMSD
+rd <- rmsd(pdbs)   
+
+# Clustering  
+hc <- hclust(as.dist(rd))
+grps <- cutree(hc, k=3) 
+ 
+# Plot results as dendrogram
+hclustplot(hc, k=3)
+```
+
+# Section 5- PCA of adenylate kinase structures
+```{r}
+#getting pdb file for adenylate cyclase
+aa <- get.seq("1ake_A")
+aa
+
+```
+
+Search the PDB database
+```{r, cache=TRUE}
+b <- blast.pdb(aa)
+```
+
+```{r}
+hits <- plot(b)
+```
+
+## PCA
+```{r}
+#find invariant core
+core <- core.find(pdbs)
+
+#superimpose all structures to core
+
+```
 

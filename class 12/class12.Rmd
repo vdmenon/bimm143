@@ -28,7 +28,19 @@ ligand <- trim.pdb(hiv, "ligand")
 Wrie out these new PDB files so we can use them for docking
 ```{r}
 write.pdb(ligand, "1hsg_ligand.pdb")
-write.pdb(prot, "1hsg_protein")
+write.pdb(prot, "1hsg_protein.pdb")
+```
+Processing the docking results for VMD display
+```{r}
+res <- read.pdb("all.pdbqt", multi=TRUE)
+write.pdb(res, "results.pdb")
+```
+
+Quantitatively analyzing docking results
+```{r}
+res <- read.pdb("all.pdbqt", multi=TRUE) 
+ori <- read.pdb("ligand.pdbqt")
+rmsd(ori, res)
 ```
 
 

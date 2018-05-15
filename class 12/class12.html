@@ -158,7 +158,22 @@ hiv</code></pre>
 ligand &lt;- trim.pdb(hiv, &quot;ligand&quot;)</code></pre>
 <p>Wrie out these new PDB files so we can use them for docking</p>
 <pre class="r"><code>write.pdb(ligand, &quot;1hsg_ligand.pdb&quot;)
-write.pdb(prot, &quot;1hsg_protein&quot;)</code></pre>
+write.pdb(prot, &quot;1hsg_protein.pdb&quot;)</code></pre>
+<p>Processing the docking results for VMD display</p>
+<pre class="r"><code>res &lt;- read.pdb(&quot;all.pdbqt&quot;, multi=TRUE)
+write.pdb(res, &quot;results.pdb&quot;)</code></pre>
+<p>Quantitatively analyzing docking results RMSD (root mean square distance of our results)</p>
+<pre class="r"><code>res &lt;- read.pdb(&quot;all.pdbqt&quot;, multi=TRUE) 
+ori &lt;- read.pdb(&quot;ligand.pdbqt&quot;)
+rmsd(ori, res)</code></pre>
+<pre><code>##  [1]  0.590 11.163 10.531  4.364 11.040  3.682  5.741  3.864  5.442 10.920
+## [11]  4.318  6.249 11.084  8.929</code></pre>
+<pre class="r"><code>ind.res &lt;- atom.select(res, &quot;noh&quot;)
+ind.mk &lt;-  atom.select(ligand, &quot;noh&quot;)
+#res$xyz[,ind.res$xyz]
+rmsd(ligand, res$xyz[,ind.res$xyz])</code></pre>
+<pre><code>##  [1]  7.073  8.765  9.086  7.101  9.798  6.967  7.556  7.219  7.362  9.201
+## [11]  7.295  7.213 10.257 10.840</code></pre>
 </div>
 
 

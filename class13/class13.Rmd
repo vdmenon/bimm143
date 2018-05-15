@@ -1,0 +1,69 @@
+---
+title: "class13"
+author: "Vaibhav Menon"
+date: "5/15/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 1000 genome project data aanysis
+
+downloaded genotype data from ensemble for Asthma associated SNP rs8067378
+See: MXL Mexican ancestry in Los Angeles, California
+```{r}
+#read csv file
+genotype <- read.csv("373531-SampleGenotypes-Homo_sapiens_Variation_Sample_rs8067378.csv")
+head (genotype)
+```
+Find how many of each genotype there are in this dataset
+```{r}
+genotype.summary <- table(genotype[,2])
+genotype.summary
+```
+Proportion of each genotype
+```{r}
+genotype.summary/nrow(genotype)*100
+```
+
+## RNA-seq
+Look more closely at sample HG00109 with G|G genotype for this SNP (from GBR population)
+
+### side note on fastq quality scores
+```{r}
+#install.packages("seqinr")
+#install.packages("gtools")
+library(seqinr)
+library (gtools)
+phred <- asc(s2c("DDDDCDDEEDEDFFFFHHHHHHJJIIJIGIJJJJIJJIJIHFD;JJIJJJIJIIJJJJJIJJHHHHHFFFFFCCC"))-33
+phred
+```
+```{r}
+prob <- 10**(-phred/10)
+prob
+```
+
+## Population Scale Analysis
+```{r}
+genotype.table <- read.table("rs8067378_ENSG00000172057.6.txt")
+summary(genotype.table)
+```
+
+Look at data
+```{r}
+table(genotype.table$geno)
+```
+How many samples?
+```{r}
+nrow(genotype.table)
+```
+
+```{r}
+# boxplot
+plot <- boxplot(genotype.table)
+plot
+```
+
+

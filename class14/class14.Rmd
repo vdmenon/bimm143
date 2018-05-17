@@ -1,0 +1,221 @@
+---
+title: "class14"
+author: "Vaibhav Menon"
+date: "5/17/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Import countData and colData into R
+```{r}
+counts <- read.csv("data/airway_scaledcounts.csv", stringsAsFactors=FALSE)
+metadata <-read.csv("data/airway_metadata.csv", stringsAsFactors = FALSE)
+
+```
+
+Id'ing and calculating mean of control samples
+```{r}
+control <- metadata[metadata[,"dex"]=="control",]
+control.mean <- rowSums( counts[ ,control$id] )/length(control$id) 
+names(control.mean) <- counts$ensgene
+head(control.mean)
+```
+
+Id'ing and calculating mean of treated samples
+```{r}
+treated <- metadata[metadata[,"dex"]=="treated",]
+treated.mean <- rowSums( counts[ ,treated$id])/length(treated$id)
+names(treated.mean) <- treated$ensgene
+head(treated.mean)
+```
+
+Combining meancount data for bookkeeping purposes
+```{r}
+meancounts <- data.frame(control.mean, treated.mean)
+colSums(meancounts)
+```
+
+Scatter plot mean treated vs mean control
+```{r}
+plot.default(meancounts$control.mean, meancounts$treated.mean, log="xy", xlab="log control", ylab="log treated")
+```
+
+Finding differentially expressed genes
+```{r}
+meancounts$log2fc <- log2(meancounts[,"treated.mean"]/meancounts[,"control.mean"])
+head(meancounts)
+```
+
+Getting rid of NaN's and inf's
+```{r}
+zero.vals <- which(meancounts[,1:2]==0, arr.ind=TRUE)
+to.rm <- unique(zero.vals[,1])
+mycounts <- meancounts[-to.rm,]
+head(mycounts)
+```
+Setting two-fold threshold for differnetial expression
+```{r}
+up.ind <- mycounts$log2fc > 2
+down.ind <- mycounts$log2fc < (-2)
+paste("Up: ", sum(up.ind))
+paste("Down: ", sum(down.ind))
+```
+```{r}
+anno <- read.csv("data/annotables_grch38.csv")
+results <- merge(mycounts, anno, by.x="row.names" ,by.y="ensgene" )
+head(results)
+```
+
+# Annotation via packages
+Loading packages
+```{r}
+library("AnnotationDbi")
+library("org.Hs.eg.db")
+```
+
+Annotation
+```{r}
+mycounts$symbol <- mapIds(org.Hs.eg.db,
+                     keys=row.names(mycounts),
+                     column="SYMBOL",
+                     keytype="ENSEMBL",
+                     multiVals="first")
+
+mycounts$entrez <- mapIds(org.Hs.eg.db,
+                     keys=row.names(mycounts),
+                     column="SYMBOL",
+                     keytype="ENSEMBL",
+                     multiVals="first")
+mycounts$uniprot <- mapIds(org.Hs.eg.db,
+                     keys=row.names(mycounts),
+                     column="SYMBOL",
+                     keytype="ENSEMBL",
+                     multiVals="first")
+head(mycounts)
+```
+# DEseq2 analysis
+Load the package
+```{r}
+library(DESeq2)
+citation("DESeq2")
+```
+
+```{r}
+dds <- DESeqDataSetFromMatrix(countData=counts, 
+                              colData=metadata, 
+                              design=~dex, 
+                              tidy=TRUE)
+dds
+```
+
+```{r}
+dds <- DESeq(dds)
+```
+
+Getting results
+```{r}
+res <- results(dds)
+res
+```
+```{r}
+summary(res)
+```
+
+Reorder results table by the smallest p-value
+```{r}
+resOrdered <- res[order(res$pvalue),]
+```
+
+customize Alpha value
+```{r}
+res05 <- results(dds, alpha=0.05)
+summary(res05)
+```
+
+Determine significant differential expression
+```{r}
+resSig05 <- subset(as.data.frame(res), padj < 0.05)
+nrow(resSig05)
+
+resSig01 <- subset(as.data.frame(res), padj < 0.01)
+nrow(resSig01)
+```
+
+Annotating results dataframe for alpha=0.01
+```{r}
+res01 <- results(dds, alpha=0.01)
+summary(res01)
+
+resSig01 <- merge(resSig01, anno, by.x="row.names" ,by.y="ensgene" )
+head(resSig01)
+```
+
+Ordered by smallest p value
+```{r}
+ord <- order( resSig01$padj )
+#View(res01[ord,])
+head(resSig01[ord,])
+```
+
+```{r}
+write.csv(resSig01[ord,], "signif01_results.csv")
+```
+
+# Data Visulization
+```{r}
+i <- grep("CRISPLD2", resSig01$symbol)
+resSig01[i,]
+```
+```{r}
+rownames(resSig01[i,])
+```
+
+```{r}
+plotCounts(dds, gene="ENSG00000103196", intgroup="dex")
+```
+
+Return the data
+```{r}
+d <- plotCounts(dds, gene="ENSG00000103196", intgroup="dex", returnData=TRUE)
+head(d)
+```
+
+Boxplot, default and ggplot
+```{r}
+boxplot(count ~ dex , data=d)
+library(ggplot2)
+ggplot(d, aes(dex, count)) + geom_boxplot(aes(fill=dex)) + scale_y_log10() + ggtitle("CRISPLD2")
+```
+
+MA & Volcano plots
+```{r}
+res$sig <- res$padj<0.05
+
+# How many of each?
+table(res$sig)
+
+sum(is.na(res$sig))
+```
+
+MA Plot
+```{r}
+plotMA(res, ylim=c(-2,2))
+```
+
+Get rid of noise from 2fold log changes 
+```{r}
+resLFC <- lfcShrink(dds, coef=2)
+resLFC
+plotMA(resLFC, ylim=c(-2,2))
+```
+
+Volcano Plots
+```{r}
+ggplot(as.data.frame(res), aes(log2FoldChange, -1*log10(pvalue), col=sig)) + 
+    geom_point() + 
+    ggtitle("Volcano plot")
+```
+

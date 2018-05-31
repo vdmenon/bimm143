@@ -1,0 +1,43 @@
+---
+title: "find a gene"
+author: "Vaibhav Menon"
+date: "5/31/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(bio3d)
+```
+
+read fasta alignment file
+```{r}
+heatmap_alignmentchar <-read.fasta("heatmap_muscle-I20180531-102410-0991-22119438-p2m.fst")
+```
+
+calculate sequence identity matrix
+```{r}
+seqID <- seqidentity(heatmap_alignmentchar)
+```
+
+create heatmap
+```{r}
+heatmap_alignment <- heatmap(seqID, margins=c(12,12))
+heatmap_alignment
+```
+find a consensus sequence
+```{r}
+cons <- consensus(heatmap_alignmentchar)
+#cons
+ghen <- blast.pdb("PGSYDFRLGFLHSGTAKSVTCTYSPALNKLFCQLAKTCPVQLWVSSPPPPGTRVRAMAIYKKSEYMTEVVRRCPHHERSSDYSDGLAPPQHLIRVEGNLRAEYLDDRNTFRHSVVVPYEPPEVGSDCTTIHYNFMCNSSCMGGMNRRPILTIITLEDASGNLLGRNSFEVRVCACPGRDRRTEEENFLKKGQSCPEPPPGSTKRALPTSTSSSPVQKKKPLDGEYFTLQIRGRERFEMFRELNDALELKDAQTARESGENRAHSSHLKSKKGQSPSRQK")
+ghen
+```
+
+```{r}
+annotated <- pdb.annotate(c("3Q06_A", "1TSR_A", "4MZR_A", "2P52_A", "4D1L_A"))
+annotated
+```
+
